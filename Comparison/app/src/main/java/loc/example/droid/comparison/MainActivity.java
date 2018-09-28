@@ -15,7 +15,12 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -65,7 +70,13 @@ public class MainActivity extends AppCompatActivity {
         mActionBar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
 
 //        this.addDrawerListener();
-        this.readExternalFiles();
+        try {
+            this.readExternalFiles();
+        } catch (FileNotFoundException fne) {
+            Log.e(TAG, fne.getMessage(), fne);
+        } catch (IOException ioe) {
+            Log.e(TAG, ioe.getMessage(), ioe);
+        }
     }
 
     @Override
@@ -122,16 +133,27 @@ public class MainActivity extends AppCompatActivity {
      * 3) read json file
      * 4)
      */
-    protected void readExternalFiles() {
-        String dir = Environment.DIRECTORY_DOWNLOADS;
-        File[] files = this.getExternalFilesDirs(dir);
-        Log.d(TAG, "number of external download files: " + files.length);
+    protected void readExternalFiles() throws FileNotFoundException, IOException {
+        String dirPath = Environment.DIRECTORY_DOWNLOADS;
+        File[] dirs = this.getExternalFilesDirs(dirPath);
+        Log.d(TAG, "number of external download files: " + dirs.length);
         String strJson = "";
-        for (File file : files) {
-            Log.d(TAG, "file: " + file);
-//            if (file.isFile() && file.exists() && file.canRead()) {
-                strJson = file.toString();
-//            }
+        for (File dir : dirs) {
+            Log.d(TAG, "dir: " + dir);
+            if (dir.isDirectory()) {
+                File[] files = dir.listFiles();
+                for (File file : files) {
+                    if (file.isFile() && file.exists() && file.canRead()) {
+                        InputStream in = new FileInputStream(file);
+                        byte[] bytes = new byte[1024];
+                        int bytesRead = in.read(bytes);
+                        while (bytesRead != -1) {
+
+                        }
+                        strJson = file.toString();
+                    }
+                }
+            }
         }
         Log.d(TAG, "json: " + strJson);
     }
